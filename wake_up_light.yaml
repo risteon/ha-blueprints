@@ -1,0 +1,86 @@
+blueprint:
+  name: Wake-up light alarm with sunrise effect
+  description: 'A wake-up light alarm with a brightness and color temperature sunrise
+    effect. Note: Requires date_time_iso sensor in configuration, not manually executable!'
+  domain: automation
+  input:
+    light_entity_primary:
+      name: Wake-up light entity
+      description: The light to control. Turning it off during the sunrise will keep
+        it off. Color temperature range is auto-detected.
+      selector:
+        entity:
+          domain: light
+
+    light_entity_secondary:
+      name: Wake-up light entity. Secondary, only color temperature.
+      description: The light to control. Turning it off during the sunrise will keep
+        it off. Color temperature range is auto-detected.
+      selector:
+        entity:
+          domain: light
+
+    manual_time_input:
+      name: Manual alarm time
+      description: Time to trigger alarm every day if timestamp sensor is not set.
+        Settings at or shortly after midnight will not work as expected!
+      selector:
+        entity:
+          domain: input_datetime
+
+    check_entity:
+      name: Additional entity to check before sunrise is triggered
+      description: If set, checks if entity is 'on' or 'home' before triggering. Use
+        e.g. a (workday) sensor, device_tracker or person entity.
+      default: none
+      selector:
+        entity: {}
+
+    seconds_between_steps:
+      name: Sunrise duration
+      description: Seconds between steps.
+      default: 600
+      selector:
+        number:
+          min: 10
+          max: 1200
+          step: 10
+          unit_of_measurement: seconds
+          mode: slider
+
+
+variables:
+
+  manual_time_input: !input 'manual_time_input'
+  check_entity: !input 'check_entity'
+
+
+trigger:
+  platform: template
+  value_template: "{{ states('sensor.time') == (states.input_datetime.wake_up_sunrise.attributes.timestamp | int | timestamp_custom('%H:%M', True)) }}"
+
+condition:
+- condition: state
+  entity_id: input_boolean.wake_up_enabled
+  state: 'on'
+- condition: or
+  conditions:
+    - condition: state
+      entity_id: input_boolean.wake_up_on_weekends
+      state: 'on'
+    - condition: time
+      weekday:
+        - mon
+        - tue
+        - wed
+        - thu
+        - fri
+action:
+- service: script.turn_on
+  target: script.wake_up_sequence
+  data:
+    variables:
+      primary_entity: !input 'light_entity_primary'
+      secondary_entity: !input 'light_entity_secondary'
+      seconds: !input 'seconds_between_steps'
+
