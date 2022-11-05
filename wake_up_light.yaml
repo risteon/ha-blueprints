@@ -59,22 +59,22 @@ trigger:
   platform: template
   value_template: "{{ states('sensor.time') == (states.input_datetime.wake_up_sunrise.attributes.timestamp | int | timestamp_custom('%H:%M', True)) }}"
 
-condition:
-- condition: state
-  entity_id: input_boolean.wake_up_enabled
-  state: 'on'
-- condition: or
-  conditions:
-    - condition: state
-      entity_id: input_boolean.wake_up_on_weekends
-      state: 'on'
-    - condition: time
-      weekday:
-        - mon
-        - tue
-        - wed
-        - thu
-        - fri
+    #condition:
+    #- condition: state
+    #  entity_id: input_boolean.wake_up_enabled
+    #  state: 'on'
+    #- condition: or
+    #  conditions:
+    #    - condition: state
+    #      entity_id: input_boolean.wake_up_on_weekends
+    #      state: 'on'
+    #    - condition: time
+    #      weekday:
+    #        - mon
+    #        - tue
+    #        - wed
+    #        - thu
+    #        - fri
 action:
 - service: script.turn_on
   target: script.wake_up_sequence
