@@ -1,0 +1,42 @@
+blueprint:
+  name: Wake-up light trigger
+  description: 'Configure a wake up light trigger (input_button).'
+  domain: automation
+  input:
+    input_button_entity:
+      name: Button event
+      description: The input button entity to trigger.
+      selector:
+        entity:
+          domain: input_button
+          multiple: false
+  source_url: https://raw.githubusercontent.com/risteon/ha-blueprints/main/wake_up_light_trigger.yaml
+variables:
+  input_button_entity: !input 'input_button_entity'
+
+trigger:
+  - platform: time
+    at: input_datetime.wake_up_sunrise
+
+condition:
+  - condition: state
+    entity_id: input_boolean.wake_up_enabled
+    state: 'on'
+  - condition: or
+    conditions:
+      - condition: state
+        entity_id: input_boolean.wake_up_on_weekends
+        state: 'on'
+      - condition: time
+        weekday:
+          - mon
+          - tue
+          - wed
+          - thu
+          - fri
+
+action:
+  - service: input_button.press
+    target: !input 'input_button_entity'
+    data: {}
+
