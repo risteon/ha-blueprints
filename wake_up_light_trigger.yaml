@@ -37,6 +37,7 @@ condition:
 
 action:
   - service: input_button.press
-    target: !input 'input_button_entity'
+    target: 
+      entity_id: !input 'input_button_entity'
     data: {}
 
